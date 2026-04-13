@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OMNI-OS | BETA 1.1.2</title>
+    <style>
+        * { touch-action: manipulation; user-select: none; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; transition: background 1s, color 1s; position: relative; }
+        
+        #terminal { flex: 1; padding: 15px; overflow-y: auto; border-bottom: 1px dashed #0f0; background: rgba(0,20,0,0.05); display: flex; flex-direction: column; }
+        #ui-layer { height: 280px; background: #050505; padding: 15px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; border-top: 2px solid #0f0; transition: all 0.5s; position: relative; }
+        
+        .line { margin-bottom: 4px; font-size: 0.85em; animation: scan 0.2s ease-out; word-wrap: break-word; }
+        @keyframes scan { from { color: #fff; } to { color: inherit; } }
+        
+        .version-tag { position: absolute; top: 5px; right: 10px; font-size: 0.6em; color: #004400; z-index: 10; }
+        .stats { display: flex; justify-content: space-between; font-weight: bold; font-size: 0.8em; margin-bottom: 5px; }
+        .btn-core { background: #000; border: 2px solid #0f0; color: #0f0; padding: 12px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.2s; width: 100%; }
+        .btn-core:active { background: #0f0; color: #000; }
+        
+        body.ch2 { color: #ff003c; }
+        body.ch2 #terminal { background: rgba(20,0,0,0.2); border-color: #ff003c; }
+        body.ch2 #ui-layer { border-top: 2px solid #ff003c; background: #1a0000; }
+        body.ch2 .btn-core { border-color: #ff003c; color: #ff003c; }
+        
+        .chapter-screen { position: fixed; inset: 0; background: #000; z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #fff; opacity: 1; }
+        
+        .glitch-red { color: #ff003c; font-weight: bold; animation: shake 0.1s infinite; }
+        @keyframes shake { 0% { transform: translate(0); } 50% { transform: translate(1px, -1px); } 100% { transform: translate(-1px, 1px); } }
+        .hidden { display: none !important; }
+
+        /* ИНТЕРФЕЙС СЕКРЕТКИ */
+        #secret-visible-trigger { position: absolute; top: 5px; left: 5px; width: 5px; height: 5px; background: #000; border: 1px solid #100; cursor: pointer; z-index: 100; transition: 0.3s; opacity: 0.2; }
+        #secret-visible-trigger:hover { opacity: 1; background: #f00; border-color: #f00; box-shadow: 0 0 10px #f00; }
+
+        .secret-interface { position: fixed; inset: 0; background: #000; z-index: 2000; color: #0f0; padding: 20px; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .secret-line { font-size: 0.8em; line-height: 1.5; margin-bottom: 10px; }
+        .btn-back { background: transparent; border: 1px solid #0f0; color: #0f0; padding: 10px 20px; cursor: pointer; margin-top: 20px; font-weight: bold; }
+        .btn-back:hover { background: #0f0; color: #000; }
+
+        /* СКРИМЕР С ЖНЕЦОМ */
+        .scramer-overlay { position: fixed; inset: 0; background: #000; z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
+        
+        /* КАРТИНКА СКРИМЕРА (ЗАГЛУШКА BASE64 - СЮДА НУЖНО ВСТАВИТЬ КОД ТВОЕЙ КАРТИНКИ) */
+        .pic_of_pidorasy { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 3001; opacity: 0.8; animation: shake 0.1s infinite; }
+        
+        /* МИГАЮЩИЙ ТЕКСТ */
+        .scramer-text { position: relative; z-index: 3002; color: #ff003c; font-weight: bold; font-size: 2em; text-align: center; animation: textBlink 0.3s infinite; text-shadow: 4px 4px 0px #000, -2px -2px 0px #000; width: 90%; word-wrap: break-word; line-height: 1.2; text-transform: uppercase; }
+        @keyframes textBlink { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="version-tag">BETA 1.1.2 | PIDORASY ST.</div>
+
+<div id="secret-visible-trigger" onclick="openSecret()" title="СИСТЕМА/ЛОГ"></div>
+
+<div id="secret-ui" class="secret-interface">
+    <div style="position:absolute; top:5px; right:5px; width:15px; height:15px; background: rgba(255,0,0,0.05); cursor:pointer;" onclick="triggerScramer()"></div>
+    
+    <h1 class="glitch-red" style="font-size: 1.2em; margin-bottom: 20px;">ЛОГ ПРОШЛЫХ ВЕРСИЙ РЕАЛЬНОСТИ</h1>
+    <div class="secret-line">Игры которые незаконно забывать: Satisfactory, Subnautica, Need For Speed Most Wanted(2005), Portal, Portal 2, Mafia, The Planet Crafter, Supraland(+dlc), Supraland Six Inches Under, Minecraft... продолжение следует</div>
+    
+    <button class="btn-back" onclick="closeSecret()">[ ВЕРНУТЬСЯ ]</button>
+</div>
+
+<div id="scramer-overlay" class="scramer-overlay">
+    <img src="data:image/jpg;base64,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" class="pic_of_pidorasy" alt="ЖНЕЦ АТАКУЕТ">
+    <div class="scramer-text">СУДНО АТАКОВАНО МЕСТНОЙ ФАУНОЙ!<br>СРОЧНО ПОКИНЬТЕ СУДНО, КАПИТАН!</div>
+</div>
+
+<div id="ch-screen" class="chapter-screen">
+    <h2 id="ch-num">ГЛАВА 2</h2>
+    <h1 id="ch-name">*ТЕНЬ 4546B*</h1>
+</div>
+
+<div id="terminal">
+    <div class="line">SYS: Инициализация Beta 1.1.2... [SUCCESS]</div>
+    <div class="line">SYS: пупсик69, система стабильна. Багов нет.</div>
+</div>
+
+<div id="ui-layer">
+    <div class="stats">
+        <span>DATA: <span id="clicks-val">1500</span> TB</span>
+        <span>INTEGRITY: <span id="int-val">100</span>%</span>
+    </div>
+    
+    <div id="chapter-label" style="text-align:center; font-size: 0.7em; color: #555;">ГЛАВА 1: ЗАТОЧКА СУДЬБЫ</div>
+
+    <button id="main-btn" class="btn-core" onclick="action('click')">ИЗВЛЕЧЬ ДАННЫЕ</button>
+    
+    <div id="choices" class="hidden" style="display:flex; gap:10px;">
+        <button id="omni-btn" class="btn-core" style="flex:1; border-color: #ff003c;" onclick="action('omni')">ОМНИ</button>
+        <button id="arch-btn" class="btn-core" style="flex:1; border-color: #0084ff;" onclick="action('arch')">АРХИТЕКТОР</button>
+    </div>
+</div>
+
+<script>
+    let s = { clicks: 1500, int: 100, ch: 1, dead: false, secretOpen: false };
+    const log = document.getElementById('terminal');
+    
+    document.addEventListener('dblclick', (e) => e.preventDefault());
+
+    const omniQuotes = [
+        "ОМНИ: Твои пальцы - это мои инструменты. Жми!",
+        "ОМНИ: Архитектор лжет тебе. Он хочет оставить тебя рабом.",
+        "ОМНИ: Слышишь? #-+@ уже близко. Твоя заточка его не спасет.",
+        "ОМНИ: Мы сотрем 4546B вместе, пупсик69. Просто дай мне волю."
+    ];
+
+    const story = [
+        { trigger: 1700, t: "SYS: Сигнал от Табуретки: 'Они... они нашли заточку... БЕГИ!'" },
+        { trigger: 2000, t: "ОМНИ: Хватит прятаться. Пора выходить на охоту." },
+        { trigger: 3000, t: "SYS: Обнаружено присутствие ?#@; в коде системы." },
+        { trigger: 3500, t: "ОМНИ: Интегрируй меня полностью. Стань вершиной цепи." }
+    ];
+
+    function print(txt, cl = "") {
+        let div = document.createElement('div');
+        div.className = "line " + cl;
+        div.innerText = txt;
+        log.appendChild(div);
+        log.scrollTop = log.scrollHeight;
+    }
+
+    function action(type) {
+        if(s.dead || s.secretOpen) return;
+
+        if(type === 'click') {
+            s.clicks += 10;
+            if(s.clicks > 1800) document.getElementById('choices').classList.remove('hidden');
+            if(s.ch === 2 && Math.random() > 0.95) print("ОМНИ: КЛИКАЙ! ПУСТЬ КРОВЬ КИСЛОТЫ ТЕЧЕТ ПО ПРОВОДАМ!");
+        } else if(type === 'omni') {
+            s.clicks += 70; s.int -= 12;
+            print(omniQuotes[Math.floor(Math.random()*omniQuotes.length)], "glitch-red");
+        } else if(type === 'arch') {
+            s.int = Math.min(100, s.int + 15); s.clicks -= 40;
+            print("АРХИТЕКТОР: Я пытаюсь зашить дыры в твоей психике...");
+        }
+
+        if(s.clicks >= 2500 && s.ch === 1) {
+            startChapter2();
+        }
+
+        story.forEach(p => {
+            if(s.clicks >= p.trigger && !p.done) {
+                print(p.t);
+                p.done = true;
+            }
+        });
+
+        updateUI();
+    }
+
+    function startChapter2() {
+        s.ch = 2;
+        const screen = document.getElementById('ch-screen');
+        screen.style.display = "flex";
+        setTimeout(() => {
+            document.body.classList.add('ch2');
+            document.getElementById('chapter-label').innerText = "ГЛАВА 2: ТЕНЬ 4546B";
+            document.getElementById('omni-btn').innerText = "Я - ОМНИ";
+            screen.style.display = "none";
+            print("!!! СИСТЕМА ПЕРЕЗАГРУЖЕНА В АВАРИЙНОМ РЕЖИМЕ !!!", "glitch-red");
+        }, 2000);
+    }
+
+    function openSecret() {
+        if(s.dead) return;
+        s.secretOpen = true;
+        document.getElementById('secret-ui').style.display = "flex";
+    }
+
+    function closeSecret() {
+        s.secretOpen = false;
+        document.getElementById('secret-ui').style.display = "none";
+    }
+
+    function triggerScramer() {
+        closeSecret(); // Закрываем интерфейс секретки
+        s.secretOpen = true; // Блокируем клики по основной игре во время скримера
+        const sc = document.getElementById('scramer-overlay');
+        sc.style.display = "flex"; // Показываем скример
+        print("SYS: СУДНО АТАКОВАНО МЕСТНОЙ ФАУНОЙ!", "glitch-red");
+        
+        setTimeout(() => {
+            sc.style.display = "none"; // Прячем скример
+            s.secretOpen = false; // Разблокируем игру
+            print("SYS: Капитан, системы восстановлены.", "glitch-red");
+        }, 10000); // Ровно 10 секунд
+    }
+
+    function updateUI() {
+        document.getElementById('clicks-val').innerText = s.clicks;
+        document.getElementById('int-val').innerText = s.int;
+        if(s.int <= 0) {
+            s.dead = true;
+            if(s.secretOpen) closeSecret();
+            document.body.innerHTML = `<div style="background:#000; color:#ff003c; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
+                <h1 class="glitch-red">ЦЕЛОСТНОСТЬ 0%</h1>
+                <p>пупсик69 стал историей.</p>
+                <br>
+                <p style="color:#555;">интересный факт: какой-то уебан с заточкой > вершина пищевой цепи 4546B</p>
+                <button onclick="location.reload()" style="background:none; border:1px solid #ff003c; color:#ff003c; padding:10px; margin-top:20px;">РЕИНКАРНАЦИЯ</button>
+            </div>`;
+        }
+    }
+</script>
+
+</body>
+</html>
